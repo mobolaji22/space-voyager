@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import * as THREE from "three";
 
 export default function SpaceTourismApp() {
   const [activeSection, setActiveSection] = useState("home");
@@ -14,7 +15,30 @@ export default function SpaceTourismApp() {
       size: "medium",
       color: "#CCCCCC",
       satellites: [],
-      distance: 120,
+      distance: 384400,
+      gravity: "1/6 of Earth's",
+      temperature: "-173°C to 127°C",
+      atmosphere: "None",
+      surfaceFeatures: [
+        "Craters",
+        "Maria (dark plains)",
+        "Mountains",
+        "Valleys",
+      ],
+      funFacts: [
+        "The Moon is moving away from Earth at a rate of 3.8 cm per year.",
+        "The Moon always shows the same face to Earth due to tidal locking.",
+        "The footprints left by Apollo astronauts will remain for millions of years as there is no wind to erode them.",
+        "A day on the Moon lasts about 29.5 Earth days.",
+        "The Moon's surface gravity is only 1.62 m/s²",
+      ],
+      activities: [
+        "Lunar Base Tours",
+        "Low-Gravity Sports",
+        "Moon Buggy Expeditions",
+        "Earth Observation",
+        "Historical Landing Site Visits",
+      ],
     },
     {
       id: 2,
@@ -34,8 +58,38 @@ export default function SpaceTourismApp() {
           distance: 30,
           speed: 7,
         },
+        {
+          name: "Deimos",
+          size: "tiny",
+          color: "#847E76",
+          distance: 45,
+          speed: 4,
+        },
       ],
-      distance: 180,
+      distance: 78340000,
+      gravity: "38% of Earth's",
+      temperature: "-125°C to 20°C",
+      atmosphere: "Thin CO2 atmosphere",
+      surfaceFeatures: [
+        "Olympus Mons (largest volcano)",
+        "Valles Marineris (largest canyon)",
+        "Polar Ice Caps",
+        "Ancient River Valleys",
+      ],
+      funFacts: [
+        "Mars has the largest dust storms in the solar system, sometimes engulfing the entire planet.",
+        "The red color comes from iron oxide (rust) on its surface.",
+        "Mars has seasons like Earth, but they last twice as long.",
+        "Olympus Mons is the largest volcano in the solar system, standing 22km high.",
+        "The atmospheric pressure is less than 1% of Earth's",
+      ],
+      activities: [
+        "Desert Expeditions",
+        "Volcano Climbing",
+        "Ice Cap Exploration",
+        "Ancient Valley Tours",
+        "Research Station Visits",
+      ],
     },
     {
       id: 3,
@@ -48,7 +102,15 @@ export default function SpaceTourismApp() {
       size: "medium",
       color: "#E5DFB8",
       satellites: [],
-      distance: 150,
+      distance: 41400000, // average km from Earth
+      gravity: "90% of Earth's",
+      temperature: "462°C (hot enough to melt lead)",
+      funFacts: [
+        "Venus rotates backwards compared to other planets.",
+        "A day on Venus is longer than its year - 243 Earth days vs 225 Earth days.",
+        "Venus has the densest atmosphere of all terrestrial planets.",
+        "The atmospheric pressure on Venus is 92 times greater than Earth's.",
+      ],
     },
     {
       id: 4,
@@ -59,8 +121,15 @@ export default function SpaceTourismApp() {
         "Visit the largest planet in our solar system and witness its massive storms including the Great Red Spot.",
       orbitSpeed: 1,
       size: "large",
-      color: "#C3A267",
+      color: "#F3B95F",
       satellites: [
+        {
+          name: "Io",
+          size: "tiny",
+          color: "#F0D977",
+          distance: 60,
+          speed: 2,
+        },
         {
           name: "Europa",
           size: "tiny",
@@ -68,7 +137,6 @@ export default function SpaceTourismApp() {
           distance: 45,
           speed: 3,
         },
-        { name: "Io", size: "tiny", color: "#F0D977", distance: 60, speed: 2 },
         {
           name: "Ganymede",
           size: "tiny",
@@ -76,8 +144,59 @@ export default function SpaceTourismApp() {
           distance: 75,
           speed: 1.5,
         },
+        {
+          name: "Callisto",
+          size: "tiny",
+          color: "#6B7A8A",
+          distance: 30,
+          speed: 1.0,
+        },
       ],
-      distance: 240,
+      distance: 628730000, // average km from Earth
+      gravity: "2.4 times Earth's",
+      temperature: "-145°C (cloud tops)",
+      funFacts: [
+        "Jupiter has the Great Red Spot, a storm that has been raging for at least 400 years.",
+        "Jupiter's magnetic field is 14 times stronger than Earth's.",
+        "Jupiter has at least 79 moons.",
+        "If Jupiter were hollow, more than 1,300 Earths could fit inside it.",
+      ],
+    },
+    {
+      id: 5,
+      name: "Saturn Rings",
+      price: "1,200,000",
+      duration: "3 years",
+      description:
+        "Cruise through the magnificent rings of Saturn on our special ring-glider spacecraft. Experience the jewel of our solar system up close.",
+      orbitSpeed: 0.8,
+      size: "large",
+      color: "#EDD59F",
+      satellites: [
+        {
+          name: "Titan",
+          size: "small",
+          color: "#D4A76A",
+          distance: 55,
+          speed: 2.5,
+        },
+        {
+          name: "Enceladus",
+          size: "tiny",
+          color: "#FFFFFF",
+          distance: 40,
+          speed: 3.8,
+        },
+      ],
+      distance: 1275000000, // average km from Earth
+      gravity: "1.07 times Earth's",
+      temperature: "-178°C",
+      funFacts: [
+        "Saturn's rings are made mostly of ice particles with some rock debris.",
+        "Saturn is the least dense planet in our solar system and would float in water.",
+        "Saturn has the second-shortest day of all planets, taking just 10.7 hours to rotate.",
+        "The Cassini division, a 4,800 km wide gap in the rings, is caused by orbital resonance with Saturn's moon Mimas.",
+      ],
     },
   ]);
   const [selectedDestination, setSelectedDestination] = useState(1);
@@ -91,6 +210,612 @@ export default function SpaceTourismApp() {
   const canvasRef = useRef(null);
   const gameLoopRef = useRef(null);
   const orbitSystemRef = useRef(null);
+  const [selectedPlanet, setSelectedPlanet] = useState(null);
+  const [orbitLines, setOrbitLines] = useState(true);
+  const [speed, setSpeed] = useState(1);
+  const [cameraMode, setCameraMode] = useState("free");
+  const mountRef = useRef(null);
+
+  const [showFunFact, setShowFunFact] = useState(false);
+  const [currentFunFactIndex, setCurrentFunFactIndex] = useState(0);
+
+  const [planets, setPlanets] = useState([
+    {
+      name: "Sun",
+      color: "#FDB813",
+      radius: 5,
+      position: [0, 0, 0],
+      orbitRadius: 0,
+      orbitSpeed: 0,
+    },
+    {
+      name: "Mercury",
+      color: "#A0522D",
+      radius: 0.8,
+      position: [12, 0, 0],
+      orbitRadius: 12,
+      orbitSpeed: 0.02,
+    },
+    {
+      name: "Venus",
+      color: "#E6BE8A",
+      radius: 1.2,
+      position: [20, 0, 0],
+      orbitRadius: 20,
+      orbitSpeed: 0.015,
+    },
+    {
+      name: "Earth",
+      color: "#4B70DD",
+      radius: 1.5,
+      position: [30, 0, 0],
+      orbitRadius: 30,
+      orbitSpeed: 0.01,
+    },
+    {
+      name: "Mars",
+      color: "#C1440E",
+      radius: 1.1,
+      position: [40, 0, 0],
+      orbitRadius: 40,
+      orbitSpeed: 0.008,
+    },
+    {
+      name: "Jupiter",
+      color: "#E3A857",
+      radius: 3,
+      position: [60, 0, 0],
+      orbitRadius: 60,
+      orbitSpeed: 0.005,
+    },
+    {
+      name: "Saturn",
+      color: "#DAA520",
+      radius: 2.8,
+      position: [75, 0, 0],
+      orbitRadius: 75,
+      orbitSpeed: 0.003,
+    },
+    {
+      name: "Uranus",
+      color: "#4FD1C5",
+      radius: 2.2,
+      position: [90, 0, 0],
+      orbitRadius: 90,
+      orbitSpeed: 0.002,
+    },
+    {
+      name: "Neptune",
+      color: "#2B6CB0",
+      radius: 2.1,
+      position: [105, 0, 0],
+      orbitRadius: 105,
+      orbitSpeed: 0.001,
+    },
+  ]);
+
+  // Three.js setup effect for OrbitalSystem
+  useEffect(() => {
+    if (!mountRef.current || activeSection !== "home") return;
+
+    // Scene setup
+    const width = mountRef.current.clientWidth;
+    const height = mountRef.current.clientHeight;
+    const scene = new THREE.Scene();
+
+    // Camera setup
+    const camera = new THREE.PerspectiveCamera(75, width / height, 0.1, 1000);
+    camera.position.set(0, 40, 80);
+    camera.lookAt(0, 0, 0);
+
+    // Renderer setup
+    const renderer = new THREE.WebGLRenderer({
+      antialias: true,
+      alpha: true,
+    });
+    renderer.setSize(width, height);
+    renderer.setClearColor(0x000000, 0);
+    mountRef.current.appendChild(renderer.domElement);
+
+    // Add ambient light with increased intensity
+    const ambientLight = new THREE.AmbientLight(0x404040, 2);
+    scene.add(ambientLight);
+
+    // Add point light (Sun) with increased intensity and range
+    const sunLight = new THREE.PointLight(0xffffff, 2.5, 2000);
+    scene.add(sunLight);
+
+    // Create starry background
+    const createStars = () => {
+      const starsGeometry = new THREE.BufferGeometry();
+      const starsVertices = [];
+
+      for (let i = 0; i < 5000; i++) {
+        const x = (Math.random() - 0.5) * 2000;
+        const y = (Math.random() - 0.5) * 2000;
+        const z = (Math.random() - 0.5) * 2000;
+        starsVertices.push(x, y, z);
+      }
+
+      starsGeometry.setAttribute(
+        "position",
+        new THREE.Float32BufferAttribute(starsVertices, 3)
+      );
+      const starsMaterial = new THREE.PointsMaterial({
+        color: 0xffffff,
+        size: 0.7,
+        transparent: true,
+        opacity: Math.random(),
+      });
+
+      const starField = new THREE.Points(starsGeometry, starsMaterial);
+      scene.add(starField);
+    };
+
+    // Create constellations
+    const createConstellations = () => {
+      const constellations = [
+        // Ursa Major (Big Dipper)
+        [
+          [0, 10, -20],
+          [5, 12, -22],
+          [10, 15, -25],
+          [15, 17, -27],
+          [20, 15, -25],
+          [25, 12, -22],
+          [30, 10, -20],
+        ],
+        // Orion's Belt
+        [
+          [-20, 0, -30],
+          [-15, 2, -32],
+          [-10, 4, -34],
+        ],
+        // Cassiopeia
+        [
+          [-25, 20, -40],
+          [-20, 25, -40],
+          [-15, 23, -40],
+          [-10, 25, -40],
+          [-5, 20, -40],
+        ],
+        // Cygnus (Northern Cross)
+        [
+          [15, 30, -35],
+          [15, 25, -35],
+          [15, 20, -35],
+          [10, 23, -35],
+          [20, 23, -35],
+        ],
+      ];
+
+      constellations.forEach((constellation) => {
+        // Create lines connecting stars
+        const geometry = new THREE.BufferGeometry();
+        const vertices = constellation.flat();
+        geometry.setAttribute(
+          "position",
+          new THREE.Float32BufferAttribute(vertices, 3)
+        );
+
+        const material = new THREE.LineBasicMaterial({
+          color: 0x4169e1, // Royal blue color
+          transparent: true,
+          opacity: 0.4,
+          linewidth: 1,
+        });
+
+        const line = new THREE.Line(geometry, material);
+        scene.add(line);
+
+        // Add star points at each vertex
+        constellation.forEach((point) => {
+          const starGeometry = new THREE.SphereGeometry(0.3, 8, 8);
+          const starMaterial = new THREE.MeshBasicMaterial({
+            color: 0xffffff,
+            emissive: 0xffffff,
+            emissiveIntensity: 1,
+          });
+          const star = new THREE.Mesh(starGeometry, starMaterial);
+          star.position.set(...point);
+          scene.add(star);
+        });
+      });
+    };
+
+    // Create aurora effect
+    const createAurora = () => {
+      const auroraGeometry = new THREE.BufferGeometry();
+      const auroraVertices = [];
+      const auroraColors = [];
+
+      for (let i = 0; i < 1000; i++) {
+        const angle = (i / 1000) * Math.PI * 2;
+        const radius = 150 + Math.sin(angle * 3) * 20;
+        const x = Math.cos(angle) * radius;
+        const y = Math.sin(angle * 2) * 30 + 50;
+        const z = Math.sin(angle) * radius;
+
+        auroraVertices.push(x, y, z);
+
+        const color = new THREE.Color();
+        color.setHSL(0.5 + Math.sin(angle) * 0.1, 0.8, 0.5);
+        auroraColors.push(color.r, color.g, color.b);
+      }
+
+      auroraGeometry.setAttribute(
+        "position",
+        new THREE.Float32BufferAttribute(auroraVertices, 3)
+      );
+      auroraGeometry.setAttribute(
+        "color",
+        new THREE.Float32BufferAttribute(auroraColors, 3)
+      );
+
+      const auroraMaterial = new THREE.PointsMaterial({
+        size: 2,
+        transparent: true,
+        opacity: 0.6,
+        vertexColors: true,
+        blending: THREE.AdditiveBlending,
+        depthWrite: false,
+      });
+
+      const aurora = new THREE.Points(auroraGeometry, auroraMaterial);
+      // aurora.rotation.x = Math.PI / 6;
+      scene.add(aurora);
+
+      return aurora;
+    };
+
+    // Initialize background elements
+    createStars();
+    createConstellations();
+    const aurora = createAurora();
+
+    // Create stars
+    const orbitLineObjects = [];
+    planets.forEach((planet) => {
+      // Create orbit lines
+      if (planet.orbitRadius > 0) {
+        const orbitGeometry = new THREE.BufferGeometry();
+        const orbitMaterial = new THREE.LineBasicMaterial({
+          color: 0xffffff,
+          transparent: true,
+          opacity: 0.3,
+        });
+
+        const orbitPoints = [];
+        const segments = 128;
+
+        for (let i = 0; i <= segments; i++) {
+          const theta = (i / segments) * Math.PI * 2;
+          orbitPoints.push(
+            planet.orbitRadius * Math.cos(theta),
+            0,
+            planet.orbitRadius * Math.sin(theta)
+          );
+        }
+
+        orbitGeometry.setAttribute(
+          "position",
+          new THREE.Float32BufferAttribute(orbitPoints, 3)
+        );
+        const orbitLine = new THREE.Line(orbitGeometry, orbitMaterial);
+        scene.add(orbitLine);
+        orbitLineObjects.push(orbitLine);
+      }
+    });
+
+    // Create planets
+    const planetObjects = planets.map((planet) => {
+      const geometry = new THREE.SphereGeometry(planet.radius, 32, 32);
+      let material;
+
+      if (planet.name === "Sun") {
+        material = new THREE.MeshBasicMaterial({
+          color: planet.color,
+          emissive: planet.color,
+          emissiveIntensity: 0.8,
+        });
+      } else {
+        material = new THREE.MeshStandardMaterial({
+          color: planet.color,
+          metalness: 0.3,
+          roughness: 0.7,
+          emissive: planet.color,
+          emissiveIntensity: 0.1,
+        });
+      }
+
+      const mesh = new THREE.Mesh(geometry, material);
+      mesh.position.set(...planet.position);
+      mesh.userData = {
+        name: planet.name,
+        orbitRadius: planet.orbitRadius,
+        orbitSpeed: planet.orbitSpeed,
+      };
+
+      // Add rings for Saturn
+      if (planet.name === "Saturn") {
+        const ringGeometry = new THREE.RingGeometry(
+          planet.radius * 1.4,
+          planet.radius * 2.2,
+          64
+        );
+        const ringMaterial = new THREE.MeshBasicMaterial({
+          color: 0xc2a278,
+          side: THREE.DoubleSide,
+          transparent: true,
+          opacity: 0.8,
+        });
+        const ring = new THREE.Mesh(ringGeometry, ringMaterial);
+        ring.rotation.x = Math.PI / 2;
+        mesh.add(ring);
+      }
+
+      // Add moons
+      if (planet.name === "Earth") {
+        // Add Moon
+        const moonGeometry = new THREE.SphereGeometry(0.4, 32, 32);
+        const moonMaterial = new THREE.MeshStandardMaterial({
+          color: 0xcccccc,
+          metalness: 0.1,
+          roughness: 0.5,
+          emissive: 0xcccccc,
+          emissiveIntensity: 0.1,
+        });
+        const moon = new THREE.Mesh(moonGeometry, moonMaterial);
+        moon.position.set(2, 0, 0);
+
+        // Create moon pivot
+        const moonPivot = new THREE.Object3D();
+        moonPivot.add(moon);
+        mesh.add(moonPivot);
+        moon.userData = { orbitSpeed: 0.03 };
+      }
+
+      if (planet.name === "Mars") {
+        // Add Phobos and Deimos
+        const moons = [
+          {
+            name: "Phobos",
+            distance: 1.5,
+            size: 0.2,
+            speed: 0.04,
+            color: 0xa59d94,
+          },
+          {
+            name: "Deimos",
+            distance: 2,
+            size: 0.15,
+            speed: 0.02,
+            color: 0x847e76,
+          },
+        ];
+
+        moons.forEach((moonData) => {
+          const moonGeometry = new THREE.SphereGeometry(moonData.size, 32, 32);
+          const moonMaterial = new THREE.MeshStandardMaterial({
+            color: moonData.color,
+            metalness: 0.1,
+            roughness: 0.5,
+            emissive: moonData.color,
+            emissiveIntensity: 0.1,
+          });
+          const moon = new THREE.Mesh(moonGeometry, moonMaterial);
+          moon.position.set(moonData.distance, 0, 0);
+
+          const moonPivot = new THREE.Object3D();
+          moonPivot.add(moon);
+          mesh.add(moonPivot);
+          moon.userData = { orbitSpeed: moonData.speed };
+        });
+      }
+
+      if (planet.name === "Jupiter") {
+        // Add Galilean moons
+        const moons = [
+          {
+            name: "Io",
+            distance: 3.5,
+            size: 0.3,
+            speed: 0.04,
+            color: 0xf0d977,
+          },
+          {
+            name: "Europa",
+            distance: 4,
+            size: 0.25,
+            speed: 0.03,
+            color: 0x94a7ba,
+          },
+          {
+            name: "Ganymede",
+            distance: 4.5,
+            size: 0.35,
+            speed: 0.02,
+            color: 0x9b886f,
+          },
+          {
+            name: "Callisto",
+            distance: 5,
+            size: 0.3,
+            speed: 0.015,
+            color: 0x6b7a8a,
+          },
+        ];
+
+        moons.forEach((moonData) => {
+          const moonGeometry = new THREE.SphereGeometry(moonData.size, 32, 32);
+          const moonMaterial = new THREE.MeshStandardMaterial({
+            color: moonData.color,
+            metalness: 0.1,
+            roughness: 0.5,
+            emissive: moonData.color,
+            emissiveIntensity: 0.1,
+          });
+          const moon = new THREE.Mesh(moonGeometry, moonMaterial);
+          moon.position.set(moonData.distance, 0, 0);
+
+          const moonPivot = new THREE.Object3D();
+          moonPivot.add(moon);
+          mesh.add(moonPivot);
+          moon.userData = { orbitSpeed: moonData.speed };
+        });
+      }
+
+      scene.add(mesh);
+      return mesh;
+    });
+
+    // Add glow effect to Sun
+    const createSunGlow = () => {
+      const spriteMaterial = new THREE.SpriteMaterial({
+        map: new THREE.TextureLoader().load(
+          "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAgAAAAICAYAAADED76LAAAAAXNSR0IArs4c6QAAAAZiS0dEAP8A/wD/oL2nkwAAAAlwSFlzAAALEwAACxMBAJqcGAAAAAd0SU1FB9oFFAADM0KpHGkAAAAZdEVYdENvbW1lbnQAQ3JlYXRlZCB3aXRoIEdJTVBXgQ4XAAAAFklEQVQY02NgYGD4z0AEYBxVQA+FAAAJ1wABQ+zCVQAAAABJRU5ErkJggg=="
+        ),
+        color: 0xfdb813,
+        transparent: true,
+        blending: THREE.AdditiveBlending,
+      });
+
+      const sprite = new THREE.Sprite(spriteMaterial);
+      sprite.scale.set(15, 15, 1);
+
+      const sunMesh = planetObjects.find((p) => p.userData.name === "Sun");
+      if (sunMesh) {
+        sunMesh.add(sprite);
+      }
+    };
+
+    createSunGlow();
+
+    // Raycaster setup
+    const raycaster = new THREE.Raycaster();
+    const mouse = new THREE.Vector2();
+
+    const onMouseMove = (event) => {
+      const rect = mountRef.current.getBoundingClientRect();
+      mouse.x = ((event.clientX - rect.left) / width) * 2 - 1;
+      mouse.y = -((event.clientY - rect.top) / height) * 2 + 1;
+    };
+
+    const onMouseClick = () => {
+      raycaster.setFromCamera(mouse, camera);
+      const intersects = raycaster.intersectObjects(planetObjects);
+
+      if (intersects.length > 0) {
+        const clickedPlanet = intersects[0].object;
+        setSelectedPlanet(clickedPlanet.userData.name);
+      } else {
+        setSelectedPlanet(null);
+      }
+    };
+
+    // Add event listeners
+    mountRef.current.addEventListener("mousemove", onMouseMove);
+    mountRef.current.addEventListener("click", onMouseClick);
+
+    // Animation setup
+    let angleOffset = 0;
+    let targetCameraPosition = new THREE.Vector3(0, 40, 80);
+    let animationFrameId = null;
+
+    const animate = () => {
+      animationFrameId = requestAnimationFrame(animate);
+
+      // Update planet positions
+      angleOffset += 0.001 * speed;
+
+      planetObjects.forEach((planet) => {
+        if (planet.userData.orbitRadius > 0) {
+          const angle = angleOffset * planet.userData.orbitSpeed * 50;
+          planet.position.x = Math.cos(angle) * planet.userData.orbitRadius;
+          planet.position.z = Math.sin(angle) * planet.userData.orbitRadius;
+          planet.rotation.y += 0.01;
+
+          // Animate moons
+          planet.children.forEach((child) => {
+            if (child instanceof THREE.Object3D && child.children.length > 0) {
+              const moon = child.children[0];
+              if (moon.userData && moon.userData.orbitSpeed) {
+                child.rotation.y += moon.userData.orbitSpeed;
+              }
+            }
+          });
+        }
+      });
+
+      // Update orbit lines visibility
+      orbitLineObjects.forEach((line) => {
+        line.visible = orbitLines;
+      });
+
+      // Camera following selected planet
+      if (selectedPlanet && cameraMode === "follow") {
+        const planet = planetObjects.find(
+          (p) => p.userData.name === selectedPlanet
+        );
+        if (planet) {
+          targetCameraPosition = new THREE.Vector3(
+            planet.position.x + 5,
+            planet.position.y + 10,
+            planet.position.z + 15
+          );
+          camera.position.lerp(targetCameraPosition, 0.05);
+          camera.lookAt(planet.position);
+        }
+      } else if (cameraMode === "free") {
+        targetCameraPosition = new THREE.Vector3(0, 40, 80);
+        camera.position.lerp(targetCameraPosition, 0.05);
+        camera.lookAt(0, 0, 0);
+      } else if (cameraMode === "top") {
+        targetCameraPosition = new THREE.Vector3(0, 100, 0);
+        camera.position.lerp(targetCameraPosition, 0.05);
+        camera.lookAt(0, 0, 0);
+      }
+
+      // Animate aurora
+      if (aurora) {
+        aurora.rotation.y += 0.0005;
+        const positions = aurora.geometry.attributes.position.array;
+        for (let i = 0; i < positions.length; i += 3) {
+          positions[i + 1] +=
+            Math.sin(Date.now() * 0.001 + positions[i] * 0.1) * 0.1;
+        }
+        aurora.geometry.attributes.position.needsUpdate = true;
+      }
+
+      renderer.render(scene, camera);
+    };
+
+    animate();
+
+    // Cleanup function
+    return () => {
+      if (mountRef.current) {
+        mountRef.current.removeEventListener("mousemove", onMouseMove);
+        mountRef.current.removeEventListener("click", onMouseClick);
+      }
+
+      if (animationFrameId) {
+        cancelAnimationFrame(animationFrameId);
+      }
+
+      if (renderer.domElement && renderer.domElement.parentNode) {
+        renderer.domElement.parentNode.removeChild(renderer.domElement);
+      }
+      renderer.dispose();
+
+      scene.traverse((object) => {
+        if (object instanceof THREE.Mesh) {
+          object.geometry.dispose();
+          object.material.dispose();
+        }
+      });
+    };
+  }, [activeSection, planets, selectedPlanet, orbitLines, speed, cameraMode]);
 
   // Creates shooting stars
   const createShootingStar = () => {
@@ -125,6 +850,38 @@ export default function SpaceTourismApp() {
       }, 10);
     }
   };
+
+  // useEffect to handle automatic fun fact display
+  useEffect(() => {
+    // Initial delay of 2 seconds after destination selection
+    const initialTimer = setTimeout(() => {
+      setShowFunFact(true);
+    }, 5000);
+
+    // Cleanup initial timer
+    return () => clearTimeout(initialTimer);
+  }, [selectedDestination]); // Triggers when destination changes
+
+  // Cycle through fun facts
+  useEffect(() => {
+    if (!showFunFact) return;
+
+    const timer = setTimeout(() => {
+      setShowFunFact(false);
+      setCurrentFunFactIndex(
+        (prev) =>
+          (prev + 1) %
+          destinations.find((d) => d.id === selectedDestination).funFacts.length
+      );
+
+      // Show next fun fact after a short delay
+      setTimeout(() => {
+        setShowFunFact(true);
+      }, 5000);
+    }, 5000);
+
+    return () => clearTimeout(timer);
+  }, [showFunFact, selectedDestination, destinations]);
 
   // Shooting stars animation
   useEffect(() => {
@@ -404,7 +1161,9 @@ export default function SpaceTourismApp() {
       case "venus":
         return "https://images.unsplash.com/photo-1614313913007-2b4ae8ce32d6?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=MnwxfDB8MXxyYW5kb218MHx8dmVudXN8fHx8fHwxNjE0MDYyMDgy&ixlib=rb-1.2.1&q=80&utm_campaign=api-credit&utm_medium=referral&utm_source=unsplash_source&w=500";
       case "jupiter orbit":
-        return "https://images.unsplash.com/photo-1614314107768-6018061e5704?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=MnwxfDB8MXxyYW5kb218MHx8anVwaXRlcnx8fHx8fDE2MTQwNjIxMTY&ixlib=rb-1.2.1&q=80&utm_campaign=api-credit&utm_medium=referral&utm_source=unsplash_source&w=500";
+        return "https://wallpaperaccess.com/full/223952.jpg";
+      case "saturn rings":
+        return "https://plus.unsplash.com/premium_photo-1717325377988-a8ba48fc547f?fm=jpg&q=60&w=3000&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1pbi1zYW1lLXNlcmllc3wzfHx8ZW58MHx8fHx8";
       default:
         return "/api/placeholder/500/500";
     }
@@ -414,7 +1173,7 @@ export default function SpaceTourismApp() {
     switch (activeSection) {
       case "home":
         return (
-          <div className="flex flex-col items-center justify-center h-full text-center px-4">
+          <div className="flex flex-col items-center justify-center min-h-screen text-center px-4">
             <h1 className="text-5xl md:text-6xl font-bold text-white mb-6">
               Space Tourism
             </h1>
@@ -434,6 +1193,70 @@ export default function SpaceTourismApp() {
                 Play Space Explorer
               </button>
             </div>
+
+            {/* Orbital System Integration */}
+            <div className="w-full max-w-6xl mx-auto mt-5">
+              <div
+                ref={mountRef}
+                className="w-full"
+                style={{ height: "600px" }}
+              />
+
+              <div className="p-2 text-white text-sm">
+                <div className="p-4 text-white">
+                  <div className="flex flex-wrap justify-between items-center">
+                    <div className="flex space-x-4 items-center mb-2 md:mb-0">
+                      <div>
+                        <label className="mr-2">Camera:</label>
+                        <select
+                          value={cameraMode}
+                          onChange={(e) => setCameraMode(e.target.value)}
+                          className="bg-gray-700 rounded p-1">
+                          <option value="free">Free View</option>
+                          <option value="follow">Follow Planet</option>
+                          <option value="top">Top View</option>
+                        </select>
+                      </div>
+
+                      <div>
+                        <label className="mr-2">Speed:</label>
+                        <input
+                          type="range"
+                          min="0.1"
+                          max="5"
+                          step="0.1"
+                          value={speed}
+                          onChange={(e) => setSpeed(parseFloat(e.target.value))}
+                          className="w-24"
+                        />
+                        <span className="ml-1">{speed.toFixed(1)}x</span>
+                      </div>
+
+                      <div className="flex items-center">
+                        <input
+                          type="checkbox"
+                          id="orbitLines"
+                          checked={orbitLines}
+                          onChange={() => setOrbitLines(!orbitLines)}
+                          className="mr-1"
+                        />
+                        <label htmlFor="orbitLines">Orbit Lines</label>
+                      </div>
+                    </div>
+
+                    <div className="p-2 rounded">
+                      {selectedPlanet
+                        ? `Selected: ${selectedPlanet}`
+                        : "Click on a planet"}
+                    </div>
+                  </div>
+                </div>
+                <p>
+                  Click on any planet to select it. Use the controls to change
+                  the view and simulation speed.
+                </p>
+              </div>
+            </div>
           </div>
         );
       case "destinations":
@@ -443,7 +1266,7 @@ export default function SpaceTourismApp() {
         return (
           <div className="flex flex-col md:flex-row items-center justify-between w-full max-w-6xl mx-auto p-4 gap-8">
             <div className="w-full md:w-1/2 relative">
-              <div className="relative h-64 md:h-96 rounded-xl overflow-hidden shadow-2xl">
+              <div className="relative h-64 md:h-96 rounded-xl overflow-hidden bg-gray-800">
                 <img
                   src={getDestinationImage(destination.name)}
                   alt={destination.name}
@@ -461,11 +1284,12 @@ export default function SpaceTourismApp() {
                 <div
                   ref={orbitSystemRef}
                   className="relative w-full h-full max-w-md max-h-md">
-                  {/* Center Sun */}
+                  {/* Planet */}
                   <div
-                    className="absolute top-1/2 left-1/2 w-8 h-8 bg-yellow-500 rounded-full transform -translate-x-1/2 -translate-y-1/2"
+                    className={`absolute top-1/2 left-1/2 w-8 h-8 rounded-full transform -translate-x-1/2 -translate-y-1/2`}
                     style={{
-                      boxShadow: "0 0 20px rgba(254, 240, 138, 0.8)",
+                      // boxShadow: "0 0 20px rgba(254, 240, 138, 0.8)",
+                      backgroundColor: `${destination.color}`,
                     }}></div>
 
                   {/* Planet Orbit Path */}
@@ -509,20 +1333,84 @@ export default function SpaceTourismApp() {
                 {destination.name}
               </h2>
               <p className="text-gray-300 mb-6">{destination.description}</p>
+
               <div className="grid grid-cols-2 gap-4 mb-8">
-                <div>
+                {/* <div>
                   <p className="text-gray-400">Price</p>
                   <p className="text-2xl font-bold text-white">
                     ${destination.price}
                   </p>
-                </div>
+                </div> */}
                 <div>
                   <p className="text-gray-400">Duration</p>
                   <p className="text-2xl font-bold text-white">
                     {destination.duration}
                   </p>
                 </div>
+                <div>
+                  <p className="text-gray-400">Distance</p>
+                  <p className="text-xl font-bold text-white">
+                    {destination.distance.toLocaleString()} km
+                  </p>
+                </div>
+                <div>
+                  <p className="text-gray-400">Gravity</p>
+                  <p className="text-xl font-bold text-white">
+                    {destination.gravity}
+                  </p>
+                </div>
+
+                {destination.atmosphere && (
+                  <div className="mb-6">
+                    <h3 className="text-xl font-bold text-white mb-2">
+                      Atmosphere
+                    </h3>
+                    <p className="text-gray-300">{destination.atmosphere}</p>
+                  </div>
+                )}
+
+                {destination.surfaceFeatures &&
+                  destination.surfaceFeatures.length > 0 && (
+                    <div className="mb-6">
+                      <h3 className="text-xl font-bold text-white mb-2">
+                        Surface Features
+                      </h3>
+                      <ul className="list-disc list-inside text-gray-300">
+                        {destination.surfaceFeatures.map((feature, index) => (
+                          <li key={index}>{feature}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+
+                {destination.activities &&
+                  destination.activities.length > 0 && (
+                    <div className="mb-6">
+                      <h3 className="text-xl font-bold text-white mb-2">
+                        Available Activities
+                      </h3>
+                      <ul className="list-disc list-inside text-gray-300">
+                        {destination.activities.map((activity, index) => (
+                          <li key={index}>{activity}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
               </div>
+
+              {/* {destination.funFacts && destination.funFacts.length > 0 && (
+                <div className="mb-8">
+                  <h3 className="text-xl font-bold text-white mb-2">
+                    Fun Facts
+                  </h3>
+                  <ul className="list-disc list-inside text-gray-300">
+                    {destination.funFacts.map((fact, index) => (
+                      <li key={index}>{fact}</li>
+                    ))}
+                  </ul>
+                </div>
+              )} */}
+
               <button
                 onClick={() => setActiveSection("contact")}
                 className="bg-purple-600 hover:bg-purple-700 text-white font-bold py-3 px-8 rounded-full transition-all duration-300 transform hover:scale-105">
@@ -699,7 +1587,7 @@ export default function SpaceTourismApp() {
   };
 
   return (
-    <div className="min-h-screen bg-black text-white flex flex-col">
+    <div className="min-h-screen bg-black text-white flex flex-col relative">
       {/* Stars background */}
       <div className="fixed inset-0 z-0">
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-gray-900 to-black"></div>
@@ -776,6 +1664,19 @@ export default function SpaceTourismApp() {
               ))}
             </div>
           </div>
+        </div>
+      )}
+
+      {/* Fun Facts Popup */}
+      {showFunFact && (
+        <div className="fixed bottom-12 right-8 max-w-md bg-purple-900/10 p-6 rounded-xl shadow-lg backdrop-blur-sm animate-fade-in z-50">
+          <p className="text-lg font-light">
+            {
+              destinations.find((d) => d.id === selectedDestination).funFacts[
+                currentFunFactIndex
+              ]
+            }
+          </p>
         </div>
       )}
 
